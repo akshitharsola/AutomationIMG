@@ -7,9 +7,9 @@ import shutil
 import json
 from automationimg.utils import canny_detection, category_aware_detection, preprocessing
 # Import the detection functions
-from utils.canny_detection import batch_process_images as single_object_detection
-from utils.category_aware_detection import process_dataset as multiple_object_detection
-from utils.preprocessing import preprocess_dataset
+from automationimg.utils.canny_detection import batch_process_images as single_object_detection
+from automationimg.utils.category_aware_detection import batch_process_images as multiple_object_detection
+from automationimg.utils.preprocessing import preprocess_images
 
 class ProcessingThread(QThread):
     progress_update = pyqtSignal(int, int)
