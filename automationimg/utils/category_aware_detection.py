@@ -21,6 +21,13 @@ def filter_detections_by_category(detections, class_labels, model):
         if class_name in class_labels:
             filtered_detections.append((*xyxy, conf, cls))
     return filtered_detections
+    def batch_process_images(input_folder, output_folder):
+    # function code here
+        pass
+
+def preprocess_images(input_folder, output_folder):
+    # function code here
+        pass
 
 def process_image(image_path, model, class_labels, conf_threshold=0.25):
     image = cv2.imread(image_path)

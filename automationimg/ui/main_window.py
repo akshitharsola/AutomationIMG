@@ -10,6 +10,7 @@ from automationimg.utils import canny_detection, category_aware_detection, prepr
 from automationimg.utils.canny_detection import batch_process_images as single_object_detection
 from automationimg.utils.category_aware_detection import batch_process_images as multiple_object_detection
 from automationimg.utils.preprocessing import preprocess_images
+# Update other imports as necessary
 
 class ProcessingThread(QThread):
     progress_update = pyqtSignal(int, int)

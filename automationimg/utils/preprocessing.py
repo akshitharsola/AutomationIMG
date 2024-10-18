@@ -43,6 +43,14 @@ def preprocess_dataset(input_folder, output_folder):
     logging.info(f"Error images: {error_images}")
     logging.info(f"Total class labels: {len(class_labels)}")
 
+def batch_process_images(input_folder, output_folder):
+    # function code here
+    pass
+
+def preprocess_images(input_folder, output_folder):
+    pass
+    # function code here
+    
 if __name__ == "__main__":
     input_folder = "/path/to/input/folder"
     output_folder = "/path/to/output/folder"
