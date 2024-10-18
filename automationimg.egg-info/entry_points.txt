@@ -1,0 +1,2 @@
+[console_scripts]
+automationimg = automationimg.main:main

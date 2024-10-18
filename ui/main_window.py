@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 import shutil
 import json
-
+from automationimg.utils import canny_detection, category_aware_detection, preprocessing
 # Import the detection functions
 from utils.canny_detection import batch_process_images as single_object_detection
 from utils.category_aware_detection import process_dataset as multiple_object_detection

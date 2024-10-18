@@ -5,12 +5,33 @@ setup(
     version="0.1",
     packages=find_packages(),
     install_requires=[
-        "PyQt5",
-        # Add other dependencies here
+        "PyQt5>=5.15.0",
+        "opencv-python>=4.5.0",
+        "numpy>=1.19.0",
+        "scikit-image>=0.18.0",
+        "matplotlib>=3.3.0",
+        "tqdm>=4.50.0",
+        "Pillow>=8.0.0",
+        "torch>=1.7.0",  # If you're using PyTorch for YOLO
+        "torchvision>=0.8.0",  # If you're using PyTorch for YOLO
+        "pandas>=1.1.0",  # If you're using it for data manipulation
+        "scipy>=1.5.0",  # Often useful for scientific computing
     ],
     entry_points={
         "console_scripts": [
             "automationimg=automationimg.main:main",
         ],
     },
+    author="Your Name",
+    author_email="your.email@example.com",
+    description="A tool for image preprocessing and object detection",
+    long_description=open('README.md').read(),
+    long_description_content_type="text/markdown",
+    url="https://github.com/akshitharsola/AutomationIMG",
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires='>=3.7',
 )
