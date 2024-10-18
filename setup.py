@@ -14,7 +14,8 @@ setup(
         "Pillow>=8.0.0",
         "torch>=1.7.0",  # If you're using PyTorch for YOLO
         "torchvision>=0.8.0",  # If you're using PyTorch for YOLO
-        "pandas>=1.1.0",  # If you're using it for data manipulation
+        "pandas>=1.1.0",
+        "ultralytics>=8.0.0",# If you're using it for data manipulation
         "scipy>=1.5.0",  # Often useful for scientific computing
     ],
     entry_points={
