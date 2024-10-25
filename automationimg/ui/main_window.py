@@ -325,28 +325,29 @@ class MainWindow(QMainWindow):
             event.accept()
             
     def uninstall_tool(self):
-        """Handle complete tool uninstallation"""
+        """Handle tool uninstallation"""
         reply = QMessageBox.question(
             self,
             'Confirm Uninstallation',
             'Are you sure you want to uninstall AutomationIMG?\n'
-            'This will remove the tool from your system.',
+            'This will close the application and remove it from your system.',
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
         
         if reply == QMessageBox.Yes:
             try:
-                # Import the uninstall module
-                from automationimg.uninstall import uninstall
+                import subprocess
                 
-                # Run uninstallation
-                uninstall()
+                # Run pip uninstall directly
+                subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "automationimg", "-y"])
                 
                 QMessageBox.information(
                     self,
                     'Uninstallation Complete',
-                    'AutomationIMG has been uninstalled.\n'
+                    'AutomationIMG has been uninstalled.\n\n'
+                    'Note: If you installed from source, you may need to\n'
+                    'manually delete the project directory.\n\n'
                     'The application will now close.',
                     QMessageBox.Ok
                 )
@@ -359,9 +360,10 @@ class MainWindow(QMainWindow):
                     self,
                     'Uninstallation Error',
                     f'Error during uninstallation: {str(e)}\n\n'
-                    'Please try manual uninstallation:\n'
-                    '1. Run: python -m automationimg.uninstall\n'
-                    '2. Or run: pip uninstall automationimg -y',
+                    'Please try these steps:\n'
+                    '1. Close the application\n'
+                    '2. Run: pip uninstall automationimg -y\n'
+                    '3. Delete the project folder if it exists',
                     QMessageBox.Ok
                 )
 
