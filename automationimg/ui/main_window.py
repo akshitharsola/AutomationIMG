@@ -1,4 +1,3 @@
-# At the start of each .py file:
 """
 AutomationIMG - A tool for automated image preprocessing and object detection
 Copyright (C) 2024 Akshit Harsola
@@ -9,7 +8,6 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 """
 
-
 import sys
 import os
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
@@ -17,6 +15,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 import shutil
 import json
+import subprocess
 from automationimg.utils import canny_detection, preprocessing
 from automationimg.utils.canny_detection import batch_process_images as single_object_detection
 from automationimg.utils.preprocessing import preprocess_images
@@ -64,73 +63,12 @@ def preprocess_dataset(input_folder, output_folder):
     with open(os.path.join(output_folder, 'class_labels.json'), 'w') as f:
         json.dump(list(class_labels), f)
 
-def uninstall_tool(self):
-    """Handle complete tool uninstallation"""
-    reply = QMessageBox.question(
-        self,
-        'Confirm Uninstallation',
-        'Are you sure you want to completely uninstall AutomationIMG?\n'
-        'This will:\n'
-        '1. Remove the package from Python\n'
-        '2. Delete all project files\n'
-        '3. Close the application',
-        QMessageBox.Yes | QMessageBox.No,
-        QMessageBox.No
-    )
-    
-    if reply == QMessageBox.Yes:
-        try:
-            # Get the script directory
-            script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            uninstall_script = os.path.join(script_dir, 'uninstall.py')
-            
-            # Create a batch/shell script to run uninstallation after GUI closes
-            is_windows = os.name == 'nt'
-            script_ext = 'bat' if is_windows else 'sh'
-            temp_script = os.path.join(os.path.expanduser('~'), f'complete_uninstall.{script_ext}')
-            
-            with open(temp_script, 'w') as f:
-                if is_windows:
-                    f.write('@echo off\n')
-                    f.write('timeout /t 2 /nobreak\n')
-                    f.write(f'python "{uninstall_script}"\n')
-                    f.write('pause\n')
-                    f.write('del "%~f0"\n')
-                else:
-                    f.write('#!/bin/bash\n')
-                    f.write('sleep 2\n')
-                    f.write(f'python "{uninstall_script}"\n')
-                    f.write('read -p "Press Enter to exit..."\n')
-                    f.write('rm "$0"\n')
-            
-            if not is_windows:
-                os.chmod(temp_script, 0o755)
-            
-            # Execute the uninstallation script
-            if is_windows:
-                os.system(f'start cmd /c "{temp_script}"')
-            else:
-                os.system(f'bash "{temp_script}" &')
-            
-            # Close the application
-            self.cleanup_and_exit()
-            
-        except Exception as e:
-            QMessageBox.warning(
-                self,
-                'Uninstallation Error',
-                f'Error during uninstallation: {str(e)}\n\n'
-                'Please try manual uninstallation:\n'
-                '1. Run: pip uninstall automationimg\n'
-                '2. Delete the project folder',
-                QMessageBox.Ok
-            )
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("AutomationIMG")
-        self.setFixedSize(400, 500)
+        self.setFixedSize(400, 650)
         self.input_folder = ""
         self.output_folder = ""
         self.current_working_dir = ""
@@ -143,6 +81,7 @@ class MainWindow(QMainWindow):
         self.preprocess_btn = None
         self.single_obj_btn = None
         self.multiple_obj_btn = None
+        self.uninstall_btn = None  # Add this line
         self.progress_label = None
         self.progress_bar = None
         self.exit_btn = None
@@ -163,6 +102,7 @@ class MainWindow(QMainWindow):
         self.preprocess_btn = self.create_button("Preprocess Dataset")
         self.single_obj_btn = self.create_button("Single Object Detection")
         self.multiple_obj_btn = self.create_button("Multiple Object Detection")
+        self.uninstall_btn = self.create_button("Uninstall Tool")  # Add uninstall button
         self.exit_btn = self.create_button("Exit")
         
         # Add buttons to layout
@@ -177,6 +117,9 @@ class MainWindow(QMainWindow):
         self.progress_bar = QProgressBar()
         layout.addWidget(self.progress_label)
         layout.addWidget(self.progress_bar)
+        
+        # Add uninstall and exit buttons
+        layout.addWidget(self.uninstall_btn)
         layout.addWidget(self.exit_btn)
         
         # Style multiple object detection button
@@ -195,12 +138,32 @@ class MainWindow(QMainWindow):
             }
         """)
         
-        # Add closeEvent handler for window close button
-        self.setWindowFlags(
-            self.windowFlags() | 
-            Qt.WindowCloseButtonHint | 
-            Qt.WindowMinimizeButtonHint
-        )
+        self.uninstall_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #dc3545;
+                border: none;
+                color: white;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #c82333;
+            }
+            QPushButton:pressed {
+                background-color: #bd2130;
+            }
+        """)
+        
+# =============================================================================
+#         # Add closeEvent handler for window close button
+#         self.setWindowFlags(
+#             self.windowFlags() | 
+#             Qt.WindowCloseButtonHint | 
+#             Qt.WindowMinimizeButtonHint
+#         )
+# =============================================================================
 
         # Connect buttons
         self.input_btn.clicked.connect(self.select_input_folder)
@@ -208,12 +171,20 @@ class MainWindow(QMainWindow):
         self.preprocess_btn.clicked.connect(self.run_preprocessing)
         self.single_obj_btn.clicked.connect(self.run_single_object_detection)
         self.multiple_obj_btn.clicked.connect(self.run_multiple_object_detection)
+        self.uninstall_btn.clicked.connect(self.uninstall_tool)  # Connect uninstall button
         self.exit_btn.clicked.connect(self.handle_exit)
 
         # Initially disable buttons
         self.preprocess_btn.setEnabled(False)
         self.single_obj_btn.setEnabled(False)
-        self.multiple_obj_btn.setEnabled(True)  # Enabled to show "under development" message
+        self.multiple_obj_btn.setEnabled(True)
+        
+        # Set window flags
+        self.setWindowFlags(
+            self.windowFlags() | 
+            Qt.WindowCloseButtonHint | 
+            Qt.WindowMinimizeButtonHint
+        )
 
     def create_button(self, text):
         button = QPushButton(text)
@@ -352,6 +323,44 @@ class MainWindow(QMainWindow):
             event.ignore()
         else:
             event.accept()
+            
+    def uninstall_tool(self):
+        """Handle tool uninstallation"""
+        reply = QMessageBox.question(
+            self,
+            'Confirm Uninstallation',
+            'Are you sure you want to uninstall AutomationIMG?\n'
+            'This will remove the tool from your system.',
+            QMessageBox.Yes | QMessageBox.No,
+            QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            try:
+                # Run pip uninstall
+                subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "automationimg", "-y"])
+                
+                QMessageBox.information(
+                    self,
+                    'Uninstallation Complete',
+                    'AutomationIMG has been uninstalled.\n'
+                    'The application will now close.\n\n'
+                    'Note: You may need to manually delete the project folder.',
+                    QMessageBox.Ok
+                )
+                
+                # Close the application
+                self.cleanup_and_exit()
+                
+            except Exception as e:
+                QMessageBox.warning(
+                    self,
+                    'Uninstallation Error',
+                    f'Error during uninstallation: {str(e)}\n\n'
+                    'Please try manual uninstallation:\n'
+                    'Run: pip uninstall automationimg -y',
+                    QMessageBox.Ok
+                )
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
