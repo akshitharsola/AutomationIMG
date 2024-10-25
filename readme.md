@@ -59,7 +59,7 @@ Main_Folder/
 1. **Start the application:**
 ```python
 # Simply run
-automationimg
+automationIMG
 ```
 
 2. **Using the GUI:**
