@@ -325,7 +325,7 @@ class MainWindow(QMainWindow):
             event.accept()
             
     def uninstall_tool(self):
-        """Handle tool uninstallation"""
+        """Handle complete tool uninstallation"""
         reply = QMessageBox.question(
             self,
             'Confirm Uninstallation',
@@ -337,15 +337,17 @@ class MainWindow(QMainWindow):
         
         if reply == QMessageBox.Yes:
             try:
-                # Run pip uninstall
-                subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "automationimg", "-y"])
+                # Import the uninstall module
+                from automationimg.uninstall import uninstall
+                
+                # Run uninstallation
+                uninstall()
                 
                 QMessageBox.information(
                     self,
                     'Uninstallation Complete',
                     'AutomationIMG has been uninstalled.\n'
-                    'The application will now close.\n\n'
-                    'Note: You may need to manually delete the project folder.',
+                    'The application will now close.',
                     QMessageBox.Ok
                 )
                 
@@ -358,7 +360,8 @@ class MainWindow(QMainWindow):
                     'Uninstallation Error',
                     f'Error during uninstallation: {str(e)}\n\n'
                     'Please try manual uninstallation:\n'
-                    'Run: pip uninstall automationimg -y',
+                    '1. Run: python -m automationimg.uninstall\n'
+                    '2. Or run: pip uninstall automationimg -y',
                     QMessageBox.Ok
                 )
 
