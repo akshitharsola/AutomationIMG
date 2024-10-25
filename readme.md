@@ -58,7 +58,8 @@ Main_Folder/
 ### Running the Tool
 1. **Start the application:**
 ```python
-from automationimg.ui.main_window import MainWindow
+# Simply run
+automationimg
 ```
 
 2. **Using the GUI:**
