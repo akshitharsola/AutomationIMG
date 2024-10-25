@@ -83,17 +83,16 @@ Output_Folder/
 ```
 ### 🗑️ Uninstallation
 
-You have three ways to uninstall AutomationIMG:
+You have several ways to uninstall AutomationIMG:
 
-1. **Using the GUI (Recommended)**
-   - Launch the application
+1. **Using the GUI**
+   - Launch the application: `automationimg`
    - Click the "Uninstall Tool" button
-   - Confirm the uninstallation
-   - The tool will remove itself and close
+   - Follow the prompts
 
-2. **Using the uninstall script**
+2. **Using the uninstall module**
 ```bash
-python uninstall.py
+python -m automationimg.uninstall
 ```
 
 3. **Manual uninstallation**
@@ -101,7 +100,7 @@ python uninstall.py
 pip uninstall automationimg -y
 ```
 
-After uninstallation, you may safely delete the project folder if it still exists.
+Note: After uninstallation, any remaining files in the installation directory can be safely deleted manually.
 
 ## 🤝 Contributing
 
