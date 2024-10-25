@@ -64,6 +64,68 @@ def preprocess_dataset(input_folder, output_folder):
     with open(os.path.join(output_folder, 'class_labels.json'), 'w') as f:
         json.dump(list(class_labels), f)
 
+def uninstall_tool(self):
+    """Handle complete tool uninstallation"""
+    reply = QMessageBox.question(
+        self,
+        'Confirm Uninstallation',
+        'Are you sure you want to completely uninstall AutomationIMG?\n'
+        'This will:\n'
+        '1. Remove the package from Python\n'
+        '2. Delete all project files\n'
+        '3. Close the application',
+        QMessageBox.Yes | QMessageBox.No,
+        QMessageBox.No
+    )
+    
+    if reply == QMessageBox.Yes:
+        try:
+            # Get the script directory
+            script_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            uninstall_script = os.path.join(script_dir, 'uninstall.py')
+            
+            # Create a batch/shell script to run uninstallation after GUI closes
+            is_windows = os.name == 'nt'
+            script_ext = 'bat' if is_windows else 'sh'
+            temp_script = os.path.join(os.path.expanduser('~'), f'complete_uninstall.{script_ext}')
+            
+            with open(temp_script, 'w') as f:
+                if is_windows:
+                    f.write('@echo off\n')
+                    f.write('timeout /t 2 /nobreak\n')
+                    f.write(f'python "{uninstall_script}"\n')
+                    f.write('pause\n')
+                    f.write('del "%~f0"\n')
+                else:
+                    f.write('#!/bin/bash\n')
+                    f.write('sleep 2\n')
+                    f.write(f'python "{uninstall_script}"\n')
+                    f.write('read -p "Press Enter to exit..."\n')
+                    f.write('rm "$0"\n')
+            
+            if not is_windows:
+                os.chmod(temp_script, 0o755)
+            
+            # Execute the uninstallation script
+            if is_windows:
+                os.system(f'start cmd /c "{temp_script}"')
+            else:
+                os.system(f'bash "{temp_script}" &')
+            
+            # Close the application
+            self.cleanup_and_exit()
+            
+        except Exception as e:
+            QMessageBox.warning(
+                self,
+                'Uninstallation Error',
+                f'Error during uninstallation: {str(e)}\n\n'
+                'Please try manual uninstallation:\n'
+                '1. Run: pip uninstall automationimg\n'
+                '2. Delete the project folder',
+                QMessageBox.Ok
+            )
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
