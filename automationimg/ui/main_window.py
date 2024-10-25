@@ -1,16 +1,26 @@
+# At the start of each .py file:
+"""
+AutomationIMG - A tool for automated image preprocessing and object detection
+Copyright (C) 2024 Akshit Harsola
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+"""
+
+
 import sys
 import os
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QPushButton, QFileDialog, QLabel, QProgressBar, QMessageBox)
+                           QPushButton, QFileDialog, QLabel, QProgressBar, QMessageBox)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 import shutil
 import json
-from automationimg.utils import canny_detection, category_aware_detection, preprocessing
-# Import the detection functions
+from automationimg.utils import canny_detection, preprocessing
 from automationimg.utils.canny_detection import batch_process_images as single_object_detection
-from automationimg.utils.category_aware_detection import batch_process_images as multiple_object_detection
 from automationimg.utils.preprocessing import preprocess_images
-# Update other imports as necessary
+
 
 class ProcessingThread(QThread):
     progress_update = pyqtSignal(int, int)
@@ -62,8 +72,22 @@ class MainWindow(QMainWindow):
         self.input_folder = ""
         self.output_folder = ""
         self.current_working_dir = ""
+        self.processing_thread = None
+        self.exit_requested = False
+        
+        # Initialize UI elements as class attributes
+        self.input_btn = None
+        self.output_btn = None
+        self.preprocess_btn = None
+        self.single_obj_btn = None
+        self.multiple_obj_btn = None
+        self.progress_label = None
+        self.progress_bar = None
+        self.exit_btn = None
+        
+        # Initialize UI
         self.init_ui()
-
+        
     def init_ui(self):
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -71,30 +95,50 @@ class MainWindow(QMainWindow):
         layout.setSpacing(20)
         layout.setContentsMargins(20, 20, 20, 20)
 
-        # Folder selection buttons
+        # Create buttons
         self.input_btn = self.create_button("Input Folder")
         self.output_btn = self.create_button("Output Folder")
-        layout.addWidget(self.input_btn)
-        layout.addWidget(self.output_btn)
-
-        # Processing buttons
         self.preprocess_btn = self.create_button("Preprocess Dataset")
         self.single_obj_btn = self.create_button("Single Object Detection")
         self.multiple_obj_btn = self.create_button("Multiple Object Detection")
+        self.exit_btn = self.create_button("Exit")
         
+        # Add buttons to layout
+        layout.addWidget(self.input_btn)
+        layout.addWidget(self.output_btn)
         layout.addWidget(self.preprocess_btn)
         layout.addWidget(self.single_obj_btn)
         layout.addWidget(self.multiple_obj_btn)
 
-        # Progress
+        # Progress components
         self.progress_label = QLabel("Progress:")
-        layout.addWidget(self.progress_label)
         self.progress_bar = QProgressBar()
+        layout.addWidget(self.progress_label)
         layout.addWidget(self.progress_bar)
-
-        # Exit button
-        self.exit_btn = self.create_button("Exit")
         layout.addWidget(self.exit_btn)
+        
+        # Style multiple object detection button
+        self.multiple_obj_btn.setStyleSheet("""
+            QPushButton {
+                background-color: #cccccc;
+                border: none;
+                color: #666666;
+                text-align: center;
+                text-decoration: none;
+                font-size: 16px;
+                border-radius: 10px;
+            }
+            QPushButton:hover {
+                background-color: #cccccc;
+            }
+        """)
+        
+        # Add closeEvent handler for window close button
+        self.setWindowFlags(
+            self.windowFlags() | 
+            Qt.WindowCloseButtonHint | 
+            Qt.WindowMinimizeButtonHint
+        )
 
         # Connect buttons
         self.input_btn.clicked.connect(self.select_input_folder)
@@ -102,12 +146,12 @@ class MainWindow(QMainWindow):
         self.preprocess_btn.clicked.connect(self.run_preprocessing)
         self.single_obj_btn.clicked.connect(self.run_single_object_detection)
         self.multiple_obj_btn.clicked.connect(self.run_multiple_object_detection)
-        self.exit_btn.clicked.connect(self.close)
+        self.exit_btn.clicked.connect(self.handle_exit)
 
         # Initially disable buttons
         self.preprocess_btn.setEnabled(False)
         self.single_obj_btn.setEnabled(False)
-        self.multiple_obj_btn.setEnabled(False)
+        self.multiple_obj_btn.setEnabled(True)  # Enabled to show "under development" message
 
     def create_button(self, text):
         button = QPushButton(text)
@@ -161,10 +205,13 @@ class MainWindow(QMainWindow):
         if not self.input_folder or not self.output_folder:
             print("Error: Input and output folders must be set.")
             return
+        # Disable exit button during processing
+        self.exit_btn.setEnabled(False)
         self.progress_label.setText("Progress: Preprocessing...")
         self.processing_thread = ProcessingThread(preprocess_dataset, self.input_folder, self.output_folder)
         self.processing_thread.progress_update.connect(self.update_progress)
         self.processing_thread.finished.connect(self.preprocessing_finished)
+        self.processing_thread.finished.connect(lambda: self.exit_btn.setEnabled(True))  # Re-enable exit button
         self.processing_thread.start()
 
     def preprocessing_finished(self):
@@ -178,10 +225,13 @@ class MainWindow(QMainWindow):
         if not self.current_working_dir or not self.output_folder:
             print("Error: Preprocessing must be run first.")
             return
+            
+        self.exit_btn.setEnabled(False)
         self.progress_label.setText("Progress: Running Single Object Detection...")
         self.processing_thread = ProcessingThread(single_object_detection, self.current_working_dir, self.output_folder)
         self.processing_thread.progress_update.connect(self.update_progress)
         self.processing_thread.finished.connect(self.single_object_detection_finished)
+        self.processing_thread.finished.connect(lambda: self.exit_btn.setEnabled(True))
         self.processing_thread.start()
 
     def single_object_detection_finished(self):
@@ -189,27 +239,57 @@ class MainWindow(QMainWindow):
         print("Single Object Detection completed successfully!")
 
     def run_multiple_object_detection(self):
-        if not self.current_working_dir or not self.output_folder:
-            print("Error: Preprocessing must be run first.")
-            return
-        class_labels_path = os.path.join(self.output_folder, 'class_labels.json')
-        if not os.path.exists(class_labels_path):
-            print("Warning: Class labels file not found. Run preprocessing first.")
-            return
-        self.progress_label.setText("Progress: Running Multiple Object Detection...")
-        self.processing_thread = ProcessingThread(multiple_object_detection, self.current_working_dir, self.output_folder, class_labels_path)
-        self.processing_thread.progress_update.connect(self.update_progress)
-        self.processing_thread.finished.connect(self.multiple_object_detection_finished)
-        self.processing_thread.start()
+        QMessageBox.information(
+        self,
+        "Feature Under Development",
+        "Multiple object detection is currently under development and will be available in a future update. "
+        "Please use single object detection for now.",
+        QMessageBox.Ok
+    )
 
     def multiple_object_detection_finished(self):
-        self.progress_label.setText("Progress: Multiple Object Detection completed")
-        print("Multiple Object Detection completed successfully!")
+        pass
 
     def update_progress(self, current, total):
         progress = int((current / total) * 100)
         self.progress_bar.setValue(progress)
         self.progress_label.setText(f"Progress: {current}/{total}")
+        
+    def handle_exit(self):
+        """Properly handle application exit with thread cleanup"""
+        if self.processing_thread and self.processing_thread.isRunning():
+            reply = QMessageBox.question(
+                self,
+                'Confirm Exit',
+                'A process is still running. Are you sure you want to exit?',
+                QMessageBox.Yes | QMessageBox.No,
+                QMessageBox.No
+            )
+            
+            if reply == QMessageBox.Yes:
+                self.cleanup_and_exit()
+        else:
+            self.cleanup_and_exit()
+            
+    def cleanup_and_exit(self):
+        """Clean up resources and exit the application"""
+        self.exit_requested = True
+        
+        if self.processing_thread and self.processing_thread.isRunning():
+            self.processing_thread.quit()
+            if not self.processing_thread.wait(1000):
+                self.processing_thread.terminate()
+                self.processing_thread.wait()
+        
+        QApplication.quit()
+
+    def closeEvent(self, event):
+        """Handle window close event (X button)"""
+        if not self.exit_requested:
+            self.handle_exit()
+            event.ignore()
+        else:
+            event.accept()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
