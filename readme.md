@@ -22,11 +22,17 @@ AutomationIMG is a Python-based tool for automated image preprocessing and objec
 Before installation, ensure you have:
 - Python 3.7 or higher
 - pip (Python package installer)
-- git
+- git (for git-based installation methods)
 
 ## 💻 Installation
 
-### Method 1: Using Virtual Environment (Recommended)
+### Method 1: Using pip and git (Recommended)
+```bash
+# Install directly from GitHub
+pip install git+https://github.com/akshitharsola/AutomationIMG.git
+```
+
+### Method 2: Using Virtual Environment
 ```bash
 # 1. Clone the repository
 git clone https://github.com/akshitharsola/AutomationIMG.git
@@ -48,7 +54,19 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-### Method 2: Direct Installation
+### Method 3: Manual Download
+1. Download the ZIP file from GitHub:
+   - Go to https://github.com/akshitharsola/AutomationIMG
+   - Click the green "Code" button
+   - Select "Download ZIP"
+2. Extract the ZIP file
+3. Open terminal/command prompt in the extracted folder
+4. Run:
+```bash
+pip install .
+```
+
+### Method 4: Direct Installation
 ```bash
 # 1. Clone the repository
 git clone https://github.com/akshitharsola/AutomationIMG.git
@@ -56,21 +74,6 @@ cd AutomationIMG
 
 # 2. Install dependencies and package
 pip install -r requirements.txt
-pip install -e .
-```
-
-### Method 3: Dependencies-Only Installation
-If you're having issues with the full installation:
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/akshitharsola/AutomationIMG.git
-cd AutomationIMG
-
-# 2. Install core dependencies only
-pip install PyQt5>=5.15.0 opencv-python>=4.5.0 numpy>=1.19.0 scikit-image>=0.18.0 matplotlib>=3.3.0 tqdm>=4.50.0 Pillow>=8.0.0 pandas>=1.1.0 scipy>=1.5.0
-
-# 3. Install the package
 pip install -e .
 ```
 
@@ -140,26 +143,76 @@ Output_Folder/
         └── visualizations
 ```
 
-### 🗑️ Uninstallation
+## 🗑️ Uninstallation
 
-You have several options to uninstall AutomationIMG:
-
-1. **Using the GUI**
-   - Launch the application: `automationimg`
-   - Click the "Uninstall Tool" button
-   - Follow the prompts
-
-2. **Using the uninstall module**
-```bash
-python -m automationimg.uninstall
-```
-
-3. **Manual uninstallation**
+### Method 1: Using pip
 ```bash
 pip uninstall automationimg -y
 ```
 
-Note: After uninstallation, any remaining files in the installation directory can be safely deleted manually.
+### Method 2: Using GUI
+1. Launch the application: `automationimg`
+2. Click the "Uninstall Tool" button
+3. Follow the prompts
+
+### Method 3: Complete Cleanup (Including git repository)
+```bash
+# 1. Uninstall the package
+pip uninstall automationimg -y
+
+# 2. Remove the git repository (if you cloned it)
+# For Windows:
+rd /s /q AutomationIMG
+
+# For Linux/Mac:
+rm -rf AutomationIMG
+
+# 3. Clear pip cache (optional)
+pip cache purge
+```
+
+### Method 4: Clean Virtual Environment
+If you installed in a virtual environment:
+```bash
+# 1. Deactivate virtual environment
+deactivate
+
+# 2. Remove virtual environment folder
+# For Windows:
+rd /s /q venv
+
+# For Linux/Mac:
+rm -rf venv
+```
+
+### Troubleshooting Uninstallation
+
+If you encounter issues during uninstallation:
+
+1. **Permission Issues:**
+   ```bash
+   # For Windows (Run as Administrator):
+   pip uninstall automationimg -y
+
+   # For Linux/Mac:
+   sudo pip uninstall automationimg -y
+   ```
+
+2. **Files Still Present:**
+   - Check for remaining files in your Python environment:
+     ```bash
+     python -c "import automationimg; print(automationimg.__file__)"
+     ```
+   - Manually delete the directory if shown
+
+3. **Package Still Accessible:**
+   - Try cleaning pip's cache:
+     ```bash
+     pip cache purge
+     pip uninstall automationimg -y
+     ```
+
+Note: After uninstallation, you may safely delete any remaining files in the installation directory.
 
 ## 🤝 Contributing
 
